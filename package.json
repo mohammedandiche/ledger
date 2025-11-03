@@ -1,0 +1,61 @@
+{
+  "name": "ledger",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,json}\" --ignore-path .gitignore",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@expo-google-fonts/nunito-sans": "^0.2.3",
+    "@expo-google-fonts/overpass-mono": "^0.2.3",
+    "@expo/vector-icons": "^15.0.2",
+    "@react-native-community/netinfo": "11.5.2",
+    "@shopify/flash-list": "2.0.2",
+    "@shopify/react-native-skia": "2.4.18",
+    "expo": "~55.0.4",
+    "expo-blur": "~55.0.8",
+    "expo-crypto": "~55.0.8",
+    "expo-file-system": "~55.0.9",
+    "expo-font": "~55.0.4",
+    "expo-haptics": "~55.0.8",
+    "expo-linking": "~55.0.7",
+    "expo-router": "~55.0.2",
+    "expo-secure-store": "~55.0.8",
+    "expo-splash-screen": "~55.0.9",
+    "expo-sqlite": "~55.0.10",
+    "expo-status-bar": "~55.0.4",
+    "expo-web-browser": "~55.0.9",
+    "jszip": "^3.10.1",
+    "lottie-react-native": "~7.3.4",
+    "moti": "^0.30.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.2",
+    "react-native-gesture-handler": "~2.30.0",
+    "react-native-reanimated": "4.2.1",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "react-native-web": "^0.21.0"
+  },
+  "overrides": {
+    "minimatch": ">=9.0.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~19.2.10",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.1",
+    "eslint-config-expo": "^55.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "prettier": "^3.8.1",
+    "prettier-eslint": "^16.3.0",
+    "typescript": "^5.1.3"
+  }
+}
