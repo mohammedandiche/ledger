@@ -1,0 +1,16 @@
+export const ANIM_ITEM_ENTER = 160;
+export const ANIM_ITEM_EXIT = 100;
+export const ANIM_ROW_ENTER = 120;
+export const ANIM_ROW_STAGGER = 8;
+export const ANIM_STAGGER_CAP = 160;
+export const ANIM_PAYEE_STAGGER = 5;
+export const ANIM_PAYEE_ENTER = 100;
+export const ANIM_BUDGET_SPRING = 140;
+export const ANIM_BUDGET_SLIDE = 200;
+export const ANIM_TAB_ACTIVE = 58;
+export const ANIM_TAB_INACTIVE = 55;
+export const ANIM_APPBAR_PULSE = 500;
+export const ANIM_NAV_STAGGER = 40;
+export const ANIM_SPLASH_SCALE = 350;
+export const ANIM_SPLASH_FADE_DELAY = 80;
+export const ANIM_SPLASH_FADE = 250;
