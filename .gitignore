@@ -5,6 +5,13 @@
 expo-env.d.ts
 # @end expo-cli
 
+# ── Claude Code ───────────────────────────────────────────────────
+.claude/
+CLAUDE.md
+
+# ── Native builds ─────────────────────────────────────────────────
+android/
+
 # ── Dependencies ──────────────────────────────────────────────────
 node_modules/
 package-lock.json
