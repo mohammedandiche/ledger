@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 18.0.0",
+    "requireCommit": true
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Debug"
+      }
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "ios": {
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "deterimo@gmail.com",
+        "ascAppId": "6759940412",
+        "appleTeamId": "C5GLLC9NY8"
+      }
+    }
+  }
+}

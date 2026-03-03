@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from '@/contexts/auth';
+import { PaywallProvider } from '@/contexts/paywall';
 import { BudgetProvider } from '@/contexts/budget';
 import { ToastProvider } from '@/contexts/toast';
 import { ThemeProvider, useTheme } from '@/contexts/theme';
@@ -65,9 +66,11 @@ export default function RootLayout() {
           <ThemeProvider>
             <ToastProvider>
               <AuthProvider>
-                <BudgetProvider>
-                  <AppLayout />
-                </BudgetProvider>
+                <PaywallProvider>
+                  <BudgetProvider>
+                    <AppLayout />
+                  </BudgetProvider>
+                </PaywallProvider>
               </AuthProvider>
             </ToastProvider>
           </ThemeProvider>

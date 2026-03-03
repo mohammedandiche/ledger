@@ -8,7 +8,9 @@
     "web": "expo start --web",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"**/*.{ts,tsx,json}\" --ignore-path .gitignore",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:ios": "eas build --platform ios --profile production --local",
+    "submit:ios": "eas submit --platform ios --profile production"
   },
   "dependencies": {
     "@expo-google-fonts/nunito-sans": "^0.2.3",
@@ -37,6 +39,8 @@
     "react-dom": "19.2.0",
     "react-native": "0.83.2",
     "react-native-gesture-handler": "~2.30.0",
+    "react-native-purchases": "^9.10.5",
+    "react-native-purchases-ui": "^9.10.5",
     "react-native-reanimated": "4.2.1",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",

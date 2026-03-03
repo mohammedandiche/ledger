@@ -34,6 +34,28 @@ export interface MutationDeps {
   scheduleSync: () => void;
   activeAccountIdRef: React.RefObject<string | null>;
   setActiveAccountId: React.Dispatch<React.SetStateAction<string | null>>;
+  canWriteRef: React.RefObject<boolean>;
+  recordWrite: () => void;
+  showPaywall: () => void;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function guardWrite<A extends any[], R>(
+  canWriteRef: React.RefObject<boolean>,
+  showPaywall: () => void,
+  recordWrite: () => void,
+  fn: (...args: A) => Promise<R>,
+): (...args: A) => Promise<R> {
+  return async (...args: A) => {
+    if (!canWriteRef.current) {
+      showPaywall();
+      // Paywall modal blocks the UI flow; caller never consumes this value
+      return undefined as R;
+    }
+    const result = await fn(...args);
+    recordWrite();
+    return result;
+  };
 }
 
 export function useBudgetMutations(deps: MutationDeps) {
@@ -53,6 +75,9 @@ export function useBudgetMutations(deps: MutationDeps) {
     scheduleSync,
     activeAccountIdRef,
     setActiveAccountId,
+    canWriteRef,
+    recordWrite,
+    showPaywall,
   } = deps;
 
   function requireDb(): SQLite.SQLiteDatabase {
@@ -100,54 +125,63 @@ export function useBudgetMutations(deps: MutationDeps) {
     send,
   };
 
+  const g = <A extends unknown[], R>(fn: (...args: A) => Promise<R>) =>
+    guardWrite(canWriteRef, showPaywall, recordWrite, fn);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => ({
-    createPayee:      (name: string) => payee.createPayee(ctx, name),
-    deletePayee:      (payeeId: string) => payee.deletePayee(ctx, payeeId),
-    renamePayee:      (payeeId: string, newName: string) => payee.renamePayee(ctx, payeeId, newName),
-    mergePayees:      (targetId: string, sourceIds: string[]) => payee.mergePayees(ctx, targetId, sourceIds),
-    deleteManyPayees: (ids: string[]) => payee.deleteManyPayees(ctx, ids),
+    createPayee:      g((name: string) => payee.createPayee(ctx, name)),
+    deletePayee:      g((payeeId: string) => payee.deletePayee(ctx, payeeId)),
+    renamePayee:      g((payeeId: string, newName: string) => payee.renamePayee(ctx, payeeId, newName)),
+    mergePayees:      g((targetId: string, sourceIds: string[]) => payee.mergePayees(ctx, targetId, sourceIds)),
+    deleteManyPayees: g((ids: string[]) => payee.deleteManyPayees(ctx, ids)),
 
-    createAccount:  (name: string, type: Account['type'], onBudget: boolean, startingBalanceCents: number) =>
-      account.createAccount(ctx, name, type, onBudget, startingBalanceCents),
-    renameAccount:  (accountId: string, newName: string) => account.renameAccount(ctx, accountId, newName),
-    closeAccount:   (accountId: string) => account.closeAccount(ctx, accountId),
-    reopenAccount:  (accountId: string) => account.reopenAccount(ctx, accountId),
-    deleteAccount:  (accountId: string) => account.deleteAccount(ctx, accountId),
+    createAccount:  g((name: string, type: Account['type'], onBudget: boolean, startingBalanceCents: number) =>
+      account.createAccount(ctx, name, type, onBudget, startingBalanceCents)),
+    renameAccount:  g((accountId: string, newName: string) => account.renameAccount(ctx, accountId, newName)),
+    closeAccount:   g((accountId: string) => account.closeAccount(ctx, accountId)),
+    reopenAccount:  g((accountId: string) => account.reopenAccount(ctx, accountId)),
+    deleteAccount:  g((accountId: string) => account.deleteAccount(ctx, accountId)),
 
-    addTransaction:      (txData: Parameters<typeof tx.addTransaction>[1]) => tx.addTransaction(ctx, txData),
-    updateTransaction:   (txData: Parameters<typeof tx.updateTransaction>[1]) => tx.updateTransaction(ctx, txData),
-    toggleCleared:       (id: string, current: 'cleared' | 'uncleared' | 'reconciled') => tx.toggleCleared(ctx, id, current),
-    deleteTransaction:   (id: string) => tx.deleteTransaction(ctx, id),
-    addSplitChild:       (parentId: string, child: Parameters<typeof tx.addSplitChild>[2]) => tx.addSplitChild(ctx, parentId, child),
-    addSplitTransaction: (parent: Parameters<typeof tx.addSplitTransaction>[1], children: Parameters<typeof tx.addSplitTransaction>[2]) =>
-      tx.addSplitTransaction(ctx, parent, children),
+    addTransaction:      g((txData: Parameters<typeof tx.addTransaction>[1]) => tx.addTransaction(ctx, txData)),
+    updateTransaction:   g((txData: Parameters<typeof tx.updateTransaction>[1]) => tx.updateTransaction(ctx, txData)),
+    toggleCleared:       g((id: string, current: 'cleared' | 'uncleared' | 'reconciled') => tx.toggleCleared(ctx, id, current)),
+    deleteTransaction:   g((id: string) => tx.deleteTransaction(ctx, id)),
+    addSplitChild:       g((parentId: string, child: Parameters<typeof tx.addSplitChild>[2]) => tx.addSplitChild(ctx, parentId, child)),
+    addSplitTransaction: g((parent: Parameters<typeof tx.addSplitTransaction>[1], children: Parameters<typeof tx.addSplitTransaction>[2]) =>
+      tx.addSplitTransaction(ctx, parent, children)),
 
+    // Read-only — not gated
     getClearedBalance:      (accountId: string) => recon.getClearedBalance(ctx, accountId),
-    unreconcileTransaction: (id: string) => recon.unreconcileTransaction(ctx, id),
-    lockReconciled:         (accountId: string) => recon.lockReconciled(ctx, accountId),
 
+    unreconcileTransaction: g((id: string) => recon.unreconcileTransaction(ctx, id)),
+    lockReconciled:         g((accountId: string) => recon.lockReconciled(ctx, accountId)),
+
+    // Read-only — not gated
     runDiagnostics:    () => diag.runDiagnostics(ctx),
-    applyDiagnosticFix: (issue: DiagnosticIssueRaw) => diag.applyDiagnosticFix(ctx, issue),
 
-    setBudgetAmount: (categoryId: string, amountCents: number) => budget.setBudgetAmount(ctx, categoryId, amountCents),
-    toggleCarryover: (categoryId: string) => budget.toggleCarryover(ctx, categoryId),
-    transferBudget:  (fromCategoryId: string, toCategoryId: string, amountCents: number) =>
-      budget.transferBudget(ctx, fromCategoryId, toCategoryId, amountCents),
+    applyDiagnosticFix: g((issue: DiagnosticIssueRaw) => diag.applyDiagnosticFix(ctx, issue)),
+
+    setBudgetAmount: g((categoryId: string, amountCents: number) => budget.setBudgetAmount(ctx, categoryId, amountCents)),
+    toggleCarryover: g((categoryId: string) => budget.toggleCarryover(ctx, categoryId)),
+    transferBudget:  g((fromCategoryId: string, toCategoryId: string, amountCents: number) =>
+      budget.transferBudget(ctx, fromCategoryId, toCategoryId, amountCents)),
+
+    // Read-only — not gated
     queryWithFilters: (filters: ActiveFilter[], accountId?: string | null, searchQuery?: string | null) =>
       budget.queryWithFilters(ctx, filters, accountId, searchQuery),
     getUncatCount:   (accountId: string | null) => budget.getUncatCount(ctx, accountId),
 
-    createCategoryGroup:    (name: string, isIncome?: boolean) => cat.createCategoryGroup(ctx, name, isIncome),
-    renameCategoryGroup:    (id: string, name: string) => cat.renameCategoryGroup(ctx, id, name),
-    deleteCategoryGroup:    (groupId: string) => cat.deleteCategoryGroup(ctx, groupId),
-    setCategoryGroupHidden: (id: string, hidden: boolean) => cat.setCategoryGroupHidden(ctx, id, hidden),
-    createCategory:         (name: string, groupId: string) => cat.createCategory(ctx, name, groupId),
-    renameCategory:         (id: string, name: string) => cat.renameCategory(ctx, id, name),
-    deleteCategory:         (id: string, transferId?: string | null) => cat.deleteCategory(ctx, id, transferId),
-    setCategoryHidden:      (id: string, hidden: boolean) => cat.setCategoryHidden(ctx, id, hidden),
-    moveCategoryToGroup:    (id: string, groupId: string) => cat.moveCategoryToGroup(ctx, id, groupId),
-    reorderCategoryGroups:  (orderedIds: string[]) => cat.reorderCategoryGroups(ctx, orderedIds),
-    reorderCategories:      (orderedIds: string[]) => cat.reorderCategories(ctx, orderedIds),
+    createCategoryGroup:    g((name: string, isIncome?: boolean) => cat.createCategoryGroup(ctx, name, isIncome)),
+    renameCategoryGroup:    g((id: string, name: string) => cat.renameCategoryGroup(ctx, id, name)),
+    deleteCategoryGroup:    g((groupId: string) => cat.deleteCategoryGroup(ctx, groupId)),
+    setCategoryGroupHidden: g((id: string, hidden: boolean) => cat.setCategoryGroupHidden(ctx, id, hidden)),
+    createCategory:         g((name: string, groupId: string) => cat.createCategory(ctx, name, groupId)),
+    renameCategory:         g((id: string, name: string) => cat.renameCategory(ctx, id, name)),
+    deleteCategory:         g((id: string, transferId?: string | null) => cat.deleteCategory(ctx, id, transferId)),
+    setCategoryHidden:      g((id: string, hidden: boolean) => cat.setCategoryHidden(ctx, id, hidden)),
+    moveCategoryToGroup:    g((id: string, groupId: string) => cat.moveCategoryToGroup(ctx, id, groupId)),
+    reorderCategoryGroups:  g((orderedIds: string[]) => cat.reorderCategoryGroups(ctx, orderedIds)),
+    reorderCategories:      g((orderedIds: string[]) => cat.reorderCategories(ctx, orderedIds)),
   }), [auth, isConnected, payees, year, month]);
 }

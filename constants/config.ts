@@ -12,3 +12,5 @@ export const FULL_SYNC_DELAY_MS = 1000;
 export const MAX_SYNC_ATTEMPTS = 10;
 // Gap spacing between sort_order values — matches Actual Budget's convention
 export const SORT_GAP = 16384;
+export const ENTITLEMENT_PRO = 'Ledger Pro';
+export const FREE_WRITES_PER_MONTH = 5;

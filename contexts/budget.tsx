@@ -42,6 +42,7 @@ import {
 } from '@/utils/monthHelpers';
 import { BudgetCtxValue, BUDGET_CTX_DEFAULT } from './budget/types';
 import { useBudgetMutations } from './budget/useBudgetMutations';
+import { usePaywall } from './paywall';
 import { useBudgetSync } from './budget/useBudgetSync';
 import { useTxPagination } from './budget/useTxPagination';
 import { BudgetRefCtx } from './budget/budgetDataContext';
@@ -569,6 +570,8 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     syncSetLastSyncAtRef.current = setLastSyncAt;
   }, [setLastSyncAt]);
 
+  const { canWriteRef, recordWrite, showPaywall } = usePaywall();
+
   const mutations = useBudgetMutations({
     dbRef,
     reloadAllRef,
@@ -585,6 +588,9 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     scheduleSync,
     activeAccountIdRef,
     setActiveAccountId,
+    canWriteRef,
+    recordWrite,
+    showPaywall,
   });
 
   const monthLabel = `${MONTH_NAMES[month - 1]} ${year}`;
